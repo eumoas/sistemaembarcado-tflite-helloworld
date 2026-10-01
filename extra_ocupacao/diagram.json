@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "author": "eumoas",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -86.1,
+      "left": -168.6,
+      "attrs": { "temperature": "22", "humidity": "30" }
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr1",
+      "top": 166.4,
+      "left": -277.6,
+      "attrs": { "lux": "500" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 157.55,
+      "left": 172.8,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 102,
+      "left": 253.4,
+      "attrs": { "color": "red", "label": "OCUPADA" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "dht1:VCC", "esp:3V3", "red", [ "v19.2", "h124.8" ] ],
+    [ "dht1:GND", "esp:GND.1", "black", [ "v163.2", "h134.4" ] ],
+    [ "dht1:SDA", "esp:15", "green", [ "v172.8", "h278.5", "v-38.4" ] ],
+    [ "ldr1:VCC", "esp:3V3", "red", [ "h28.8", "v-201.6" ] ],
+    [ "ldr1:GND", "esp:GND.1", "black", [ "h48", "v-19.6" ] ],
+    [ "ldr1:AO", "esp:34", "orange", [ "h67.2", "v-135.6" ] ],
+    [ "esp:2", "r1:1", "green", [ "h0" ] ],
+    [ "r1:2", "led1:A", "green", [ "v0" ] ],
+    [ "led1:C", "esp:GND.3", "black", [ "v19.2", "h-115.2", "v-76.8" ] ]
+  ],
+  "serialMonitor": { "display": "always", "newline": "lf" },
+  "dependencies": {}
+}

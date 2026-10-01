@@ -1,0 +1,161 @@
+{
+  "dataset": "UCI Occupancy Detection (Candanedo & Feldheim, 2016)",
+  "entradas": [
+    "Temperature",
+    "Humidity",
+    "Light"
+  ],
+  "amostras_treino": 8143,
+  "proporcao_ocupada_treino": 0.2123,
+  "regularizacao_l2": 0.01,
+  "epocas_treinadas": 37,
+  "parametros_modelo": 113,
+  "tamanho_tflite_int8_bytes": 2920,
+  "normalizacao": {
+    "media": [
+      20.61910057067871,
+      25.73150062561035,
+      119.51940155029297
+    ],
+    "desvio": [
+      1.0168999433517456,
+      5.530900001525879,
+      194.74380493164062
+    ]
+  },
+  "linha_de_base_luz": {
+    "limiar_lux": 365.0
+  },
+  "resultados": {
+    "teste1_porta_fechada": {
+      "amostras": 2665,
+      "modelo_float32": {
+        "acuracia": 0.9786,
+        "precisao": 0.9472,
+        "revocacao": 0.9969,
+        "f1": 0.9714,
+        "matriz_confusao": {
+          "VP": 969,
+          "VN": 1639,
+          "FP": 54,
+          "FN": 3
+        }
+      },
+      "modelo_int8": {
+        "acuracia": 0.9786,
+        "precisao": 0.9472,
+        "revocacao": 0.9969,
+        "f1": 0.9714,
+        "matriz_confusao": {
+          "VP": 969,
+          "VN": 1639,
+          "FP": 54,
+          "FN": 3
+        }
+      },
+      "modelo_float32_sem_l2": {
+        "acuracia": 0.9208,
+        "precisao": 0.9409,
+        "revocacao": 0.8354,
+        "f1": 0.885,
+        "matriz_confusao": {
+          "VP": 812,
+          "VN": 1642,
+          "FP": 51,
+          "FN": 160
+        }
+      },
+      "linha_de_base_luz": {
+        "acuracia": 0.9786,
+        "precisao": 0.9472,
+        "revocacao": 0.9969,
+        "f1": 0.9714,
+        "matriz_confusao": {
+          "VP": 969,
+          "VN": 1639,
+          "FP": 54,
+          "FN": 3
+        }
+      },
+      "concordancia_float_int8": 1.0
+    },
+    "teste2_porta_aberta": {
+      "amostras": 9752,
+      "modelo_float32": {
+        "acuracia": 0.9929,
+        "precisao": 0.9732,
+        "revocacao": 0.9937,
+        "f1": 0.9833,
+        "matriz_confusao": {
+          "VP": 2036,
+          "VN": 7647,
+          "FP": 56,
+          "FN": 13
+        }
+      },
+      "modelo_int8": {
+        "acuracia": 0.9929,
+        "precisao": 0.9732,
+        "revocacao": 0.9937,
+        "f1": 0.9833,
+        "matriz_confusao": {
+          "VP": 2036,
+          "VN": 7647,
+          "FP": 56,
+          "FN": 13
+        }
+      },
+      "modelo_float32_sem_l2": {
+        "acuracia": 0.9414,
+        "precisao": 0.8782,
+        "revocacao": 0.8375,
+        "f1": 0.8574,
+        "matriz_confusao": {
+          "VP": 1716,
+          "VN": 7465,
+          "FP": 238,
+          "FN": 333
+        }
+      },
+      "linha_de_base_luz": {
+        "acuracia": 0.9931,
+        "precisao": 0.9737,
+        "revocacao": 0.9941,
+        "f1": 0.9838,
+        "matriz_confusao": {
+          "VP": 2037,
+          "VN": 7648,
+          "FP": 55,
+          "FN": 12
+        }
+      },
+      "concordancia_float_int8": 1.0
+    }
+  },
+  "exemplos_referencia": [
+    {
+      "temperatura": 21.0,
+      "umidade": 25.0,
+      "luz": 0.0,
+      "prob_ocupada_int8": 0.0
+    },
+    {
+      "temperatura": 21.5,
+      "umidade": 27.0,
+      "luz": 450.0,
+      "prob_ocupada_int8": 0.926
+    },
+    {
+      "temperatura": 23.0,
+      "umidade": 30.0,
+      "luz": 600.0,
+      "prob_ocupada_int8": 0.945
+    },
+    {
+      "temperatura": 20.5,
+      "umidade": 20.0,
+      "luz": 50.0,
+      "prob_ocupada_int8": 0.0
+    }
+  ]
+}

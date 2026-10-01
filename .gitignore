@@ -1,0 +1,15 @@
+# Arquivos gerados pelo ESP-IDF (recriados com idf.py build)
+**/build/
+**/managed_components/
+**/sdkconfig.old
+*.log
+
+# Material da aula (PDF do professor nao e redistribuido)
+*.pdf
+
+# Configuracoes locais de ferramentas e editor
+.vscode/
+**/__pycache__/
+*.pyc
+.DS_Store
+.env
