@@ -13,3 +13,6 @@
 *.pyc
 .DS_Store
 .env
+
+# O relatorio em PDF faz parte da entrega
+!docs/*.pdf

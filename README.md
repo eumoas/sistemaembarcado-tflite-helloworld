@@ -1,3 +1,10 @@
+<p align="center"><img src="docs/imagens/capa.png" alt="Capa: TensorFlow Lite Micro no ESP32 com Wokwi — Hello World e detector de ocupação" width="100%"></p>
+
+<p align="center">
+  <b>Repositório público:</b> <a href="https://github.com/eumoas/sistemaembarcado-tflite-helloworld">github.com/eumoas/sistemaembarcado-tflite-helloworld</a><br>
+  <b>Relatório em PDF:</b> <a href="docs/Relatorio_Atividade4_TFLite_Miriam_Sobral.pdf">docs/Relatorio_Atividade4_TFLite_Miriam_Sobral.pdf</a>
+</p>
+
 | | |
 |---|---|
 | **Curso** | Pós-graduação em Inteligência Artificial Aplicada |
@@ -437,6 +444,7 @@ O GPIO34 foi escolhido porque é **só entrada** e pertence ao **ADC1**. O ADC2 
 ### 6.6 Testes no Wokwi
 
 **Como executar.**
+
 1. Selecione `extra_ocupacao/wokwi.toml` com **Wokwi: Select Config File**.
 2. **Feche a aba do simulador que estiver aberta** e rode **Wokwi: Start Simulator** de novo. Trocar o arquivo de configuração não reinicia uma simulação em andamento ([Seção 9](#9-dificuldades-encontradas-e-soluções)).
 3. Com a simulação rodando, **clique no módulo LDR** para abrir o controle deslizante *Illumination (lux)*. O mesmo vale para o DHT22: clicar nele abre os controles de temperatura e umidade.
