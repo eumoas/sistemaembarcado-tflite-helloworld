@@ -1,6 +1,16 @@
+| | |
+|---|---|
+| **Curso** | Pós-graduação em Inteligência Artificial Aplicada |
+| **Turma** | PG PGIA 2025/2 1 |
+| **Unidade Curricular** | IA Embarcada e Modelos Compactos — 489780 |
+| **Professor** | Rodrigo K. Rosa |
+| **Aluna** | Miriam O. A. Sobral |
+| **Atividade** | Atividade Avaliativa Prática (4/6) — Aula 4: Introdução ao TensorFlow Lite |
+| **Repositório** | [eumoas/sistemaembarcado-tflite-helloworld](https://github.com/eumoas/sistemaembarcado-tflite-helloworld) |
+
 # TensorFlow Lite Micro no ESP32 com Wokwi: Hello World e Detector de Ocupação
 
-Projeto da unidade curricular **IA Embarcada e Modelos Compactos**, Aula 4 (Introdução ao TensorFlow Lite). A atividade tem duas partes:
+Relatório da unidade curricular **IA Embarcada e Modelos Compactos**, Aula 4 (Introdução ao TensorFlow Lite). A atividade tem duas partes:
 
 1. **Hello World do TensorFlow Lite Micro** (exemplo `esp-tflite-micro`): uma rede neural que aproxima a função seno, compilada com o **ESP-IDF 5.5** e executada no **Wokwi** (não foi usada placa física).
 2. **Extra: detector de ocupação de sala.** É uma aplicação nova, com **sensores novos** (DHT22 e fotoresistor/LDR), **dataset novo** (UCI Occupancy Detection) e **modelo próprio** treinado, quantizado em int8 e executado no ESP32 com o TFLite Micro.
@@ -15,6 +25,8 @@ Projeto da unidade curricular **IA Embarcada e Modelos Compactos**, Aula 4 (Intr
 | Detector de ocupação: acurácia do modelo **int8** | **97,9 %** (teste 1) e **99,3 %** (teste 2) |
 | Modelo de ocupação | 113 parâmetros, **2 920 bytes** em `.tflite` int8 |
 | Concordância entre o modelo float32 e o int8 | 100 % das 12 417 amostras de teste |
+| Hello World **no Wokwi** | `y_value` acompanha o seno; MAE de 0,037 nos 20 pontos de um período ([Figura 1](#8-evidências)) |
+| Extra **no Wokwi** | 3 lux → VAZIA (P = 0,00); 500 lux → OCUPADA (P = 0,94); inferência em **624 µs** ([Figuras 2 a 4](#8-evidências)) |
 
 ## Sumário
 
@@ -33,7 +45,9 @@ Projeto da unidade curricular **IA Embarcada e Modelos Compactos**, Aula 4 (Intr
 
 ## Enunciado
 
-**Atividade Avaliativa Prática 4/6**
+**Atividade Avaliativa Prática (4/6)** — IA Embarcada e Modelos Compactos, Prof. Rodrigo K. Rosa
+
+*Condições de conclusão:*
 
 - Reproduza os passos do Hello World;
 - Print da tela do Wokwi rodando o Hello World;
@@ -49,11 +63,12 @@ Projeto da unidade curricular **IA Embarcada e Modelos Compactos**, Aula 4 (Intr
 | Requisito | Onde está |
 |---|---|
 | Reproduzir os passos do Hello World | [Seção 4](#4-parte-1-hello-world-passo-a-passo), pasta [hello_world/](hello_world/) |
-| Print do Wokwi rodando o Hello World | [Seção 8](#8-evidências), Figura 1 |
+| Print do Wokwi rodando o Hello World | [Seção 8](#8-evidências), Figura 1, analisada na [Seção 4.6](#46-simular-no-wokwi-vs-code) |
 | Relatório com análise do código e da documentação | [Seção 5](#5-relatório-análise-do-código-e-da-documentação) |
 | Extra: novo sensor | DHT22 (temperatura e umidade) e módulo fotoresistor/LDR (luz), [Seção 6.5](#65-circuito-no-wokwi) |
 | Extra: novo dataset | UCI Occupancy Detection, com 20 560 medições reais de um escritório, [Seção 6.2](#62-dataset) |
 | Extra: modelo próprio, não é outro exemplo | Rede treinada do zero em [treinar_modelo.py](extra_ocupacao/treino/treinar_modelo.py), [Seção 6.3](#63-treinamento-do-modelo) |
+| Extra: aplicação funcionando | Prints do Wokwi com sala ocupada, vazia e leitura fora da faixa, [Seção 6.6](#66-testes-no-wokwi) e Figuras 2 a 4 |
 
 ## 2. Estrutura do repositório
 
@@ -142,6 +157,8 @@ A quantização aumentou o erro médio em só 0,005, e em troca o modelo fica ce
 <p align="center"><img src="docs/imagens/hello_world_float.png" width="45%"> <img src="docs/imagens/hello_world_int8.png" width="45%"></p>
 <p align="center"><em>Figura A: previsões do modelo float (esquerda) e int8 (direita) contra o seno verdadeiro.</em></p>
 
+> **Observação importante.** O firmware do Hello World usa o `model.cc` **original do exemplo** (2 488 bytes, idêntico ao do `esp-tflite-micro`). O notebook reproduz o **processo** de treino, quantização e avaliação mostrado na aula, mas o `.tflite` gerado no Colab não foi copiado para o firmware. Por isso os erros medidos no Wokwi ([4.6](#46-simular-no-wokwi-vs-code)) são do modelo do exemplo, e não os da tabela acima. O ciclo completo "treinar → converter → `xxd` → firmware" com um modelo **próprio** foi feito no extra ([Seção 6](#6-extra-detector-de-ocupação-de-sala)).
+
 O último passo transforma o `.tflite` em código C com o `xxd`, como no slide:
 
 ```bash
@@ -217,7 +234,39 @@ A compilação passou por 1 242 etapas, a maior parte delas para compilar o Tens
 x_value: <x>, y_value: <seno previsto pelo modelo>
 ```
 
-O `x` avança 2π/20 ≈ 0,314 a cada inferência (0; 0,314; 0,628; …) e o `y` deve acompanhar o seno: sobe até ~1 perto de x = π/2 ≈ 1,57, desce até ~-1 perto de x = 3π/2 ≈ 4,71 e recomeça. O print está na [Figura 1](#8-evidências).
+#### Resultado obtido no Wokwi
+
+A simulação rodou como esperado ([Figura 1](#8-evidências)). O circuito mostra só o ESP32, e o terminal imprime um par `x_value`/`y_value` a cada 500 ms. A tabela traz **um período completo** copiado do print (20 inferências, porque `kInferencesPerCycle = 20`), comparado com o seno calculado na calculadora:
+
+| x (`x_value`) | y no ESP32 (`y_value`) | sen(x) real | erro absoluto |
+|---|---|---|---|
+| 0,000000 | 0,000000 | 0,000000 | 0,0000 |
+| 0,314159 | 0,372770 | 0,309017 | 0,0638 |
+| 0,628319 | 0,559154 | 0,587786 | 0,0286 |
+| 0,942478 | 0,838731 | 0,809017 | 0,0297 |
+| 1,256637 | 0,965812 | 0,951056 | 0,0148 |
+| 1,570796 | 1,042060 | 1,000000 | 0,0421 |
+| 1,884956 | 0,957340 | 0,951056 | 0,0063 |
+| 2,199115 | 0,821787 | 0,809017 | 0,0128 |
+| 2,513274 | 0,533738 | 0,587785 | 0,0540 |
+| 2,827433 | 0,237217 | 0,309017 | 0,0718 |
+| 3,141593 | 0,008472 | -0,000000 | 0,0085 |
+| 3,455752 | -0,304993 | -0,309017 | 0,0040 |
+| 3,769912 | -0,533738 | -0,587786 | 0,0540 |
+| 4,084070 | -0,779427 | -0,809017 | 0,0296 |
+| 4,398230 | -0,965812 | -0,951057 | 0,0148 |
+| 4,712389 | -1,109837 | -1,000000 | 0,1098 |
+| 5,026548 | -0,982756 | -0,951057 | 0,0317 |
+| 5,340708 | -0,745539 | -0,809017 | 0,0635 |
+| 5,654867 | -0,533738 | -0,587785 | 0,0540 |
+| 5,969026 | -0,355825 | -0,309017 | 0,0468 |
+
+**Análise dos valores:**
+
+- **O modelo reproduz o seno.** O `y` sobe até ~1 em x = π/2, cruza o zero em x = π (0,008), desce até ~-1 em x = 3π/2 e volta. Depois de x = 5,969, o `x` recomeça em 0 (`inference_count` volta a zero) e a sequência se repete idêntica, como se vê no print.
+- **Erro médio absoluto (MAE) de 0,037 e RMSE de 0,046.** O maior erro (0,110) fica no vale, x = 3π/2, onde o modelo previu -1,110, ou seja, passou de -1. Os pontos de pico e vale são as regiões mais difíceis para a rede pequena.
+- **A saída é "em degraus".** Todos os `y_value` são múltiplos de **0,008472**, que é a escala (`scale`) do tensor de saída int8 do modelo. Em x = π, o valor 0,008472 é exatamente **um degrau** acima de zero. Valores como 0,533738 e 0,965812 se repetem (com sinal trocado) em pontos simétricos. Com 8 bits, a saída só pode assumir 256 valores, e é isso que a tabela mostra: é a quantização int8 vista na prática.
+- **O Wokwi executou o mesmo modelo que o PC.** O mesmo `model.cc` foi rodado no interpretador TFLite do Python com a mesma conta de quantização do exemplo. **15 dos 20 valores saíram idênticos** aos do Wokwi, e os outros 5 diferem em exatamente 1 degrau (0,0085). Diferenças de 1 degrau são esperadas entre implementações: as rotinas de arredondamento interno do TFLite (PC) e do TFLite Micro (ESP32) não são idênticas.
 
 ## 5. Relatório: análise do código e da documentação
 
@@ -252,13 +301,14 @@ app_main()                      main.cc
 2. **Só entram no firmware as operações registradas.** O `MicroMutableOpResolver<1>` registra apenas o `FullyConnected`, a única operação do modelo seno (a ReLU vai "fundida" dentro da camada). O número entre `< >` é a capacidade do resolvedor. Um modelo com uma operação não registrada falha no `AllocateTensors()`. Essa escolha explícita deixa o binário menor, ao contrário do `AllOpsResolver`, que incluiria tudo.
 3. **O modelo não é copiado nem "parseado".** O `tflite::GetModel()` só aponta para o array na flash, porque o FlatBuffer pode ser lido diretamente. É a vantagem do formato citada na aula: dados acessados diretamente, sem desserialização.
 4. **Verificação de versão.** O `setup()` compara `model->version()` com `TFLITE_SCHEMA_VERSION`. Isso evita rodar um `.tflite` gerado por um conversor incompatível com o runtime.
-5. **A quantização é feita "à mão" no código do usuário.** As fórmulas `q = x/scale + zero_point` e `y = (q − zero_point)·scale` usam os `params` do tensor. Na entrada, o resultado vai para `int8_t` **sem arredondar e sem limitar a faixa**: uma conversão direta trunca o valor e pode estourar se x sair da faixa de calibração. No Hello World isso não acontece porque x fica sempre em [0, 2π]. No extra foi usada uma função `quantizar()` com `lroundf` e limite em [-128, 127].
+5. **A quantização é feita "à mão" no código do usuário.** As fórmulas `q = x/scale + zero_point` e `y = (q − zero_point)·scale` usam os `params` do tensor. Na entrada, o resultado vai para `int8_t` **sem arredondar e sem limitar a faixa**: uma conversão direta trunca o valor e pode estourar se x sair da faixa de calibração. No Hello World não há estouro, porque x fica sempre em [0, 2π] (com `scale` = 0,02457 e `zero_point` = -128, x = 2π vira 127,7 → 127). Mas o **truncamento tem custo mensurável**: rodando os 20 pontos do ciclo no PC com o mesmo modelo, o MAE é 0,0391 com truncamento e **0,0357 com arredondamento**, cerca de 9 % menos erro só por arredondar. No extra foi usada uma função `quantizar()` com `lroundf` e limite em [-128, 127].
 6. **A interface `setup()`/`loop()` vem do Arduino.** Os comentários dizem que os nomes existem "por compatibilidade com sketches estilo Arduino". No ESP-IDF, quem faz o papel do `loop()` é o `while(true)` em `app_main()`.
 7. **A documentação do exemplo está desatualizada.** O `README.md` do exemplo cita ESP-IDF `release/v4.2` e `v4.4`. Aqui foi usado o 5.5 sem nenhuma alteração no código, mas o leitor fica sem saber se a versão nova é suportada. O README também não menciona o ESP-NN nem simulação.
 8. **Avisos de compilação.** O build gera avisos `-Wshadow` em `tensorflow/lite/kernels/internal/reference/sub.h`, código do próprio TensorFlow. O `CMakeLists.txt` do componente já relaxa vários `-Werror` ("Reduce the level of paranoia to be able to compile TF sources"), o que mostra que o código do TF não foi escrito com as regras de aviso do ESP-IDF em mente.
 9. **TFLite → LiteRT.** No treino, o TensorFlow avisa que `tf.lite.Interpreter` está obsoleto e será substituído pelo pacote `ai_edge_litert`. Bate com o slide sobre o **LiteRT**, sucessor do TFLite desde 2024. A API C++ do TFLite Micro usada no ESP32 continua a mesma.
 10. **ESP-NN e simulação.** A otimização da Espressif troca kernels inteiros por versões aceleradas. Desativá-la não muda o resultado da rede, só a velocidade, porque as duas implementações calculam a mesma coisa. Numa placa real, o ESP-NN deve ficar **ligado**.
-11. **O tempo de inferência não aparece.** O exemplo não mede quanto o `Invoke()` demora, informação importante para dimensionar uma aplicação embarcada. O extra mede com `esp_timer_get_time()`.
+11. **O tempo de inferência não aparece.** O exemplo não mede quanto o `Invoke()` demora, informação importante para dimensionar uma aplicação embarcada. O extra mede com `esp_timer_get_time()`: **624 µs** por inferência no Wokwi, sem ESP-NN e a 160 MHz (ver item 12).
+12. **A frequência da CPU configurada no exemplo não é aplicada.** O `sdkconfig.defaults` do exemplo pede `CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ=240`, mas o `sdkconfig` gerado pelo ESP-IDF 5.5 ficou com **160 MHz** (`CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=160`). O motivo é que o nome da opção é antigo, e a frequência no ESP-IDF atual é escolhida por uma opção de seleção (`CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y`), não pelo valor numérico. Os dois projetos rodaram a 160 MHz. Esse é mais um sinal de que o exemplo foi escrito para versões antigas do ESP-IDF (item 7). Numa placa real, corrigir isso aceleraria a inferência em até 1,5× (240/160).
 
 ## 6. Extra: detector de ocupação de sala
 
@@ -384,15 +434,41 @@ O binário tem 225 984 bytes, só ~20 KB a mais que o Hello World: os drivers do
 
 O GPIO34 foi escolhido porque é **só entrada** e pertence ao **ADC1**. O ADC2 do ESP32 fica indisponível quando o Wi-Fi está ligado, então o ADC1 é a escolha segura para um projeto que pode crescer. Arquivo: [extra_ocupacao/diagram.json](extra_ocupacao/diagram.json).
 
-### 6.6 Como testar no Wokwi
+### 6.6 Testes no Wokwi
 
-Inicie a simulação com `extra_ocupacao/wokwi.toml` (mesmo procedimento da [seção 4.6](#46-simular-no-wokwi-vs-code)). Clique no DHT22 ou no LDR **durante a simulação** para abrir os controles deslizantes. A cada 2 s aparece uma linha como esta:
+**Como executar.**
+1. Selecione `extra_ocupacao/wokwi.toml` com **Wokwi: Select Config File**.
+2. **Feche a aba do simulador que estiver aberta** e rode **Wokwi: Start Simulator** de novo. Trocar o arquivo de configuração não reinicia uma simulação em andamento ([Seção 9](#9-dificuldades-encontradas-e-soluções)).
+3. Com a simulação rodando, **clique no módulo LDR** para abrir o controle deslizante *Illumination (lux)*. O mesmo vale para o DHT22: clicar nele abre os controles de temperatura e umidade.
+
+A cada 2 s o firmware imprime uma linha:
 
 ```text
-T=22.0 C  UR=30.0 %  Luz=500 lux (ADC 1000) -> P(ocupada)=0.94 => OCUPADA  [xxx us]
+T=22.0 C  UR=30.0 %  Luz=500 lux (ADC 1001) -> P(ocupada)=0.94 => OCUPADA  [624 us]
 ```
 
-Respostas esperadas do modelo int8, calculadas com o interpretador TFLite no PC (T = 22 °C, UR = 30 %):
+- `T` e `UR` vêm do DHT22 (valores iniciais do `diagram.json`: 22 °C e 30 %).
+- `Luz` é a iluminação calculada a partir do `ADC`, a leitura bruta do GPIO34.
+- `P(ocupada)` é a saída da sigmoid do modelo, já desquantizada.
+- O valor entre colchetes é o tempo do `Invoke()`.
+
+**Previsto no PC × obtido no Wokwi** (T = 22 °C, UR = 30 %). A previsão usa a fórmula do LDR e o interpretador TFLite no PC com o mesmo `.tflite`:
+
+| Teste (controle do LDR) | ADC previsto | ADC no Wokwi | Lux calculado no ESP32 | P(ocupada) prevista | P(ocupada) no Wokwi | Saída | LED | Figura |
+|---|---|---|---|---|---|---|---|---|
+| Sala escura: 3 lux | 3 770 | 3 779 | 3 | 0,00 | **0,00** | **VAZIA** | apagado | 3 |
+| Escritório iluminado: 500 lux | 1 001 | 1 001 | 500 | 0,94 | **0,94** | **OCUPADA** | aceso | 2 |
+| Luz muito forte: 5 495 lux | 233 | 233 | 5 503 | 0,95 | **0,95** | **OCUPADA** + aviso | aceso | 4 |
+
+**Análise dos testes:**
+
+- **O modelo embarcado se comporta exatamente como no PC.** As três probabilidades do ESP32 são iguais às calculadas pelo interpretador TFLite no computador. Isso confirma que a normalização, a quantização da entrada e a desquantização da saída no firmware ([main_functions.cc](extra_ocupacao/main/main_functions.cc)) reproduzem fielmente o que foi feito no treino.
+- **A conversão ADC → lux está correta.** O valor de lux devolvido pelo `ldr.c` coincide com o do controle deslizante: 500 → 500 e 3 → 3. A 5 495 lux, o firmware calculou 5 503 lux (0,15 % de diferença), por causa da resolução do ADC: com muita luz, cada contagem do ADC representa dezenas de lux.
+- **O DHT22 foi lido corretamente.** Os valores impressos, 22,0 °C e 30,0 %, são exatamente os do `diagram.json`. Isso mostra que o driver de um fio ([dht22.c](extra_ocupacao/main/dht22.c)), a medição dos pulsos e o *checksum* funcionaram em todas as leituras: nenhuma linha "Falha ao ler o DHT22" apareceu.
+- **Proteção contra extrapolação.** A 5 495 lux, o firmware imprimiu `aviso: leitura fora da faixa do dataset, o modelo esta extrapolando` ([Figura 4](#8-evidências)), porque o dataset vai só até ~1 700 lux. O modelo ainda respondeu OCUPADA (0,95), coerente com "muita luz". Mesmo assim, a mensagem deixa claro que é uma previsão fora do que a rede aprendeu.
+- **Tempo de inferência: 623 a 624 µs** a 160 MHz, sem ESP-NN, para 3 camadas densas e uma sigmoid. Como a leitura acontece a cada 2 s, a inferência ocupa só ~0,03 % do tempo do processador.
+
+Resposta esperada do modelo int8 em outros níveis de luz (T = 22 °C, UR = 30 %), para quem quiser repetir o teste:
 
 | Luz no controle do LDR | P(ocupada) | Resultado | LED |
 |---|---|---|---|
@@ -401,8 +477,6 @@ Respostas esperadas do modelo int8, calculadas com o interpretador TFLite no PC 
 | 350 lux | 0,44 | VAZIA (no limite) | apagado |
 | 400 lux | 0,78 | OCUPADA | aceso |
 | 500 a 1 000 lux (escritório iluminado) | 0,94 a 0,95 | OCUPADA | aceso |
-
-Pequenas diferenças na terceira casa decimal são esperadas, por causa da conversão ADC → lux.
 
 ### 6.7 Limitações
 
@@ -434,14 +508,19 @@ Depois, no VS Code: **Wokwi: Select Config File** → escolha o `wokwi.toml` da 
 
 ## 8. Evidências
 
+Prints feitos no VS Code com a extensão Wokwi (licença *Community*, em nome da aluna, visível no canto superior direito de cada figura), em 30/09/2026.
+
 <p align="center"><img src="docs/imagens/wokwi_hello_world.png" width="90%"></p>
-<p align="center"><em>Figura 1: Hello World rodando no Wokwi. O monitor serial mostra x e o seno previsto pelo modelo.</em></p>
+<p align="center"><em><b>Figura 1: Hello World rodando no Wokwi.</b> O circuito tem só o ESP32 DevKitC. No terminal, cada linha traz o <code>x_value</code> (de 0 a 2π, em 20 passos) e o <code>y_value</code> previsto pelo modelo, que acompanha o seno: ~1,04 em x = π/2, ~0,008 em x = π e ~-1,11 em x = 3π/2. A sequência se repete a cada 20 inferências. Análise na <a href="#46-simular-no-wokwi-vs-code">Seção 4.6</a>.</em></p>
 
 <p align="center"><img src="docs/imagens/wokwi_extra_ocupada.png" width="90%"></p>
-<p align="center"><em>Figura 2: Extra com o LDR em 500 lux. O modelo indica OCUPADA e o LED acende.</em></p>
+<p align="center"><em><b>Figura 2: Extra, sala ocupada.</b> Controle do LDR em 500 lux. O ESP32 lê ADC = 1001, converte para 500 lux e, com T = 22,0 °C e UR = 30,0 % do DHT22, o modelo responde P(ocupada) = 0,94 → <b>OCUPADA</b>. O LED vermelho está <b>aceso</b> (com brilho). Inferência em 624 µs.</em></p>
 
 <p align="center"><img src="docs/imagens/wokwi_extra_vazia.png" width="90%"></p>
-<p align="center"><em>Figura 3: Extra com o LDR em 50 lux. O modelo indica VAZIA e o LED apaga.</em></p>
+<p align="center"><em><b>Figura 3: Extra, sala vazia.</b> Controle do LDR reduzido para 3 lux. A primeira linha do terminal ainda mostra a leitura anterior (500 lux, OCUPADA). Na leitura seguinte, ADC = 3779 → 3 lux, P(ocupada) = 0,00 → <b>VAZIA</b>, e o LED fica <b>apagado</b> (sem brilho).</em></p>
+
+<p align="center"><img src="docs/imagens/wokwi_extra_extrapolacao.png" width="90%"></p>
+<p align="center"><em><b>Figura 4: Extra, leitura fora da faixa do dataset.</b> Controle do LDR em 5 495 lux (luz muito forte, acima dos ~1 700 lux do dataset). O ESP32 calcula 5 503 lux (ADC = 233), o modelo responde P = 0,95 → OCUPADA, e o firmware imprime o <b>aviso de extrapolação</b> em toda leitura.</em></p>
 
 ## 9. Dificuldades encontradas e soluções
 
@@ -452,6 +531,8 @@ Depois, no VS Code: **Wokwi: Select Config File** → escolha o `wokwi.toml` da 
 | Primeira rede pior que uma regra simples nos dias de teste | Diagnóstico de *distribution shift* e correção com regularização L2 ([6.3](#63-treinamento-do-modelo)) |
 | Luz alta saturava na entrada int8 | Calibração da quantização com todo o conjunto de treino |
 | `xxd` antigo sem a opção `-n` (nome do array) | `xxd -i < arquivo` gera só os bytes, e o script escreve o nome `g_model` |
+| Ao trocar para `extra_ocupacao/wokwi.toml`, o simulador continuou mostrando o Hello World | Selecionar outro `wokwi.toml` não reinicia uma simulação aberta: foi preciso fechar a aba do Wokwi e rodar **Wokwi: Start Simulator** novamente |
+| Entender como "variar a luz" sem sensor físico | No Wokwi, clicar no componente durante a simulação abre controles deslizantes (lux no LDR; temperatura e umidade no DHT22) |
 | Compilação longa com pouca RAM (5,7 GB) | Containers parados durante o build; a compilação do TFLite Micro leva ~10 min |
 
 ## 10. Referências
@@ -468,8 +549,9 @@ Depois, no VS Code: **Wokwi: Select Config File** → escolha o `wokwi.toml` da 
 
 | | |
 |---|---|
-| **Aluna** | Miriam Oliveira de Aguiar Sobral |
-| **Professor** | Rodrigo Kobashikawa Rosa |
 | **Curso** | Pós-graduação em Inteligência Artificial Aplicada |
-| **Unidade curricular** | IA Embarcada e Modelos Compactos — 489780 |
-| **Atividade** | Atividade Avaliativa Prática 4/6 — Introdução ao TensorFlow Lite |
+| **Turma** | PG PGIA 2025/2 1 |
+| **Unidade Curricular** | IA Embarcada e Modelos Compactos — 489780 |
+| **Professor** | Rodrigo K. Rosa |
+| **Aluna** | Miriam O. A. Sobral |
+| **Atividade** | Atividade Avaliativa Prática (4/6) — Aula 4: Introdução ao TensorFlow Lite |
